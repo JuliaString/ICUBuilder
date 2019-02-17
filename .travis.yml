@@ -1,0 +1,41 @@
+language: julia
+os:
+  - linux
+julia:
+  - 1.0
+  - 1.1
+
+notifications:
+  email: false
+git:
+  depth: 99999999
+cache:
+  timeout: 1000
+  directories:
+    - downloads
+
+env:
+  global:
+    - BINARYBUILDER_DOWNLOADS_CACHE=downloads
+    - BINARYBUILDER_AUTOMATIC_APPLE=true
+
+sudo: required
+
+# Before anything else, get the latest versions of things
+before_script:
+  - julia -e 'p="https://github.com/JuliaPackaging/Binary"; using Pkg; Pkg.clone(p*"Provider.jl"); Pkg.clone(p*"Builder.jl"); Pkg.build()'
+
+script:
+  - julia --color=yes build_tarballs.jl --verbose
+
+deploy:
+  provider: releases
+  api_key:
+    secure: E8im3B/zQD4ZLlneaDVkq8hUmdP3uMtckqkAN1Vcm1pgsStZ3aRVtrhI7UrogEeDMdbuINJJescXcRKZSshEX+xllQXQAgo8mq2xzz2eG/kZe9xZsCIc0/QlWsrcIYUE/nvHA7vzJ4if0S2mXNS/0X9rx65XDkHUuO8XgdCaS37clZAetPRWM6IsHQfpSQcptpZclUSEq2E18N3BsFm7GwyHeatRr9sY5E8PtzHgCMkraioDq6WKH4S2RUBYyKzO3uyjhUmKOMSK+xsJoxzmqdyfs3BlJbFCH3i7bup/gfjkUHxVwhxX+grU0u+UWe2DeF+EFNQUvJqimvat0tGG/DXxcYywqu3uOxLp06lik+ByXy4ziKgIphjf63VbI/HG6BtxQYF4dWPBQlbOw0tXJd5yKj3iS736PYZWF62/aM116DMgDrWdTP5byFhuydocFXX8X4Cb+y4IJA/XHqp15bOBMqh86K6NZglynPkAdykCZCE4rZOVqYU5F6RSG2Cxn5QrizIUeiQVK2FC92YZ5jntbGzjKJ+dJgn6gM6cf4fsMpryMAJw8O9qmKGvKBXiPVd+n7qmm70Pm40FhommwWAnX2bAL8HyAp+gqbjXE7xVcqLbgfbWeP8Nmi8L8tEjhGFiAY3HyRsW5tLCAIhmLRkruRhyl86YRg390qGBJn8=
+  file_glob: true
+  file: products/*
+  skip_cleanup: true
+  on:
+    repo: JuliaString/ICUBuilder
+    tags: true
+# all_branches: true
