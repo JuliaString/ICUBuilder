@@ -15,33 +15,42 @@ sources = [
 # ICU target names)
 
 script = raw"""
-cd $WORKSPACE/srcdir/icu/source
-if [[ "$target" == "*linux*" ]]
+build="x86_64-linux-gnu"
+icubuild="Linux"
+location="$WORKSPACE/srcdir/icu/source"
+cd $location
+if [[ "$target" == *"linux"* ]]
 then icutarget="Linux"
-elif [[ "$target" == "*macos*" ]]
+elif [[ "$target" == *"apple"* ]]
 then icutarget="MacOSX"
-elif [[ "$target" == "*windows*" ]]
-then icutarget="Windows"
-else echo "Unsupported platform" ; exit
+elif [[ "$target" == *"w64"* ]]
+then icutarget="MinGW"
+else echo "Unsupported platform" ; exit 1
 fi
-echo $target
-echo $icutarget
-./runConfigureICU $icutarget --prefix=$prefix
+echo prefix = "$prefix" ; build = "$build" ; target = "$target"
+echo icutarget = "$icutarget"
+icuargs="--prefix=$prefix --disable-samples --disable-tests"
+./runConfigureICU $icubuild $icuargs
 make
+if [[ "$target" != "$build" ]]
+then
+./runConfigureICU $icutarget $icuargs --build=$build --host=$target --with-cross-build=$location
+make
+fi
 make install
 """
 
 # These are the platforms we will build for by default, unless further
 # platforms are passed in on the command line
 platforms = [
-    Windows(:i686),
-    Windows(:x86_64),
-    Linux(:i686, :glibc),
     Linux(:x86_64, :glibc),
-    Linux(:aarch64, :glibc),
-    Linux(:armv7l, :glibc),
-    Linux(:powerpc64le, :glibc),
-    MacOS(:x86_64)
+    Linux(:i686, :glibc),
+#    Linux(:aarch64, :glibc),
+#    Linux(:armv7l, :glibc),
+#    Linux(:powerpc64le, :glibc),
+    MacOS(:x86_64),
+#    Windows(:i686),
+    Windows(:x86_64)
 ]
 
 # The products that we will ensure are always built
